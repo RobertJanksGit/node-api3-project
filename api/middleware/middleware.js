@@ -1,3 +1,5 @@
+const Users = require("../users/users-model");
+
 function logger(req, res, next) {
   const date = new Date();
   console.log(`
@@ -5,18 +7,46 @@ function logger(req, res, next) {
       REQUEST URL: ${req.originalUrl}
       TIMESTAMP: ${date.toLocaleString()}
     `);
+  next();
 }
 
-function validateUserId(req, res, next) {
-  // DO YOUR MAGIC
+async function validateUserId(req, res, next) {
+  try {
+    const { id } = req.params;
+    const user = await Users.getById(id);
+    if (user) {
+      req.user = user;
+      next();
+    } else {
+      next({ status: 404, message: `user not found` });
+    }
+  } catch (err) {
+    next(err);
+  }
+  console.log(res.body);
 }
 
 function validateUser(req, res, next) {
-  // DO YOUR MAGIC
+  const { name } = req.body;
+  if (
+    name !== undefined &&
+    typeof name === "string" &&
+    name.length &&
+    name.trim().length
+  ) {
+    next();
+  } else {
+    next({ status: 400, message: "missing required name field" });
+  }
 }
 
 function validatePost(req, res, next) {
-  // DO YOUR MAGIC
+  const { text } = req.body;
+  if (text !== undefined && typeof text === "string" && text.trim().length) {
+    next();
+  } else {
+    next({ status: 400, message: "missing required text field" });
+  }
 }
 
 module.exports = {
