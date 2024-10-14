@@ -43,16 +43,39 @@ router.delete("/:id", validateUserId, async (req, res) => {
   res.status(200).json(req.user);
 });
 
-router.get("/:id/posts", (req, res) => {
-  // RETURN THE ARRAY OF USER POSTS
-  // this needs a middleware to verify user id
+router.get("/:id/posts", validateUserId, async (req, res, next) => {
+  try {
+    const { id } = req.user;
+    const posts = await Post.get();
+    req.body = posts.filter((post) => {
+      return post["user_id"] === id;
+    });
+    res.status(200).json(req.body);
+    next();
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.post("/:id/posts", (req, res) => {
-  // RETURN THE NEWLY CREATED USER POST
-  // this needs a middleware to verify user id
-  // and another middleware to check that the request body is valid
-});
+router.post(
+  "/:id/posts",
+  [validateUserId, validatePost],
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const postDetails = {
+        ...req.body,
+        user_id: id,
+      };
+
+      const post = await Post.insert(postDetails);
+      res.status(200).json(post);
+      next();
+    } catch (err) {
+      next(err);
+    }
+  }
+);
 
 router.use((err, req, res, next) => {
   res.status(err.status || 500).json({

@@ -23,7 +23,6 @@ async function validateUserId(req, res, next) {
   } catch (err) {
     next(err);
   }
-  console.log(res.body);
 }
 
 function validateUser(req, res, next) {
@@ -42,7 +41,12 @@ function validateUser(req, res, next) {
 
 function validatePost(req, res, next) {
   const { text } = req.body;
-  if (text !== undefined && typeof text === "string" && text.trim().length) {
+  if (
+    text !== undefined &&
+    typeof text === "string" &&
+    text.length &&
+    text.trim().length
+  ) {
     next();
   } else {
     next({ status: 400, message: "missing required text field" });
